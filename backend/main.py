@@ -1,4 +1,5 @@
 from fastapi import FastAPI, HTTPException
+
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import random
@@ -19,6 +20,7 @@ app.add_middleware(
 users = {}
 sessions = {}
 
+
 class BetType(str, Enum):
     """賭けの種類"""
     number = "number"
@@ -30,7 +32,6 @@ class Bet(BaseModel):
     bet_type: BetType
     value: str
     amount: float
-
 
 class RegisterRequest(BaseModel):
     """ユーザー登録用リクエスト"""
@@ -107,6 +108,7 @@ def spin(bet: SpinRequest):
 
     user["coins"] -= bet.amount
 
+
     number = random.randint(0, 36)
     if number == 0:
         color = "green"
@@ -138,6 +140,7 @@ def spin(bet: SpinRequest):
             win = True
             payout = bet.amount
 
+
     # 払い戻し
     user["coins"] += payout
 
@@ -146,5 +149,6 @@ def spin(bet: SpinRequest):
         "bet_outcome": "win" if win else "lose",
         "payout": payout,
         "coins": user["coins"],
+
     }  # JSON レスポンスとして結果を返す
 
