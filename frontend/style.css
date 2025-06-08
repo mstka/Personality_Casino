@@ -70,3 +70,60 @@ pre {
     border-radius: 4px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
+
+
+.countdown {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.board div {
+    padding: 10px;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #eee;
+}
+
+.board .red { background: #ffcccc; }
+.board .black { background: #dddddd; }
+.board .green { background: #ccffcc; }
+.board div.active { outline: 2px solid #FFD54F; }
+
+.wheel {
+    width: 200px;
+    height: 200px;
+    border: 8px solid #333;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
+.wheel::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: #333;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.wheel.spin {
+    animation: spin 2s ease-out;
+}
+
