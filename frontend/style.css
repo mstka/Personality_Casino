@@ -78,6 +78,7 @@ pre {
 }
 
 .board {
+    position: relative;
     display: grid;
 
     grid-template-columns: repeat(3, 60px);
@@ -109,6 +110,27 @@ pre {
 .board .green { background: #0a8f08; }
 .board div.highlight { box-shadow: 0 0 10px 3px #ffd700; }
 
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+.bet-spot {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border: 1px dashed #fff;
+    border-radius: 50%;
+    box-sizing: border-box;
+    cursor: pointer;
+}
+.bet-spot:hover {
+    background: rgba(255, 255, 255, 0.3);
+}
+
 
 .options {
     display: grid;
@@ -131,10 +153,15 @@ pre {
 }
 
 .chip {
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    font-size: 10px;
+    text-align: center;
     background: #FFD54F;
+    border: 1px solid #333;
     border-radius: 50%;
+    color: #000;
     margin: 0 auto;
 }
 
