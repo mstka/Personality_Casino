@@ -97,6 +97,35 @@ pre {
 .board .green { background: #ccffcc; }
 .board div.active { outline: 2px solid #FFD54F; }
 
+
+.options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.options div {
+    padding: 10px;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #eee;
+}
+
+.disabled div {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.chip {
+    width: 16px;
+    height: 16px;
+    background: #FFD54F;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
 .wheel {
     width: 200px;
     height: 200px;
