@@ -16,7 +16,11 @@
         <label>ベット額: <input id="amount" type="number" min="1" step="1" value="1"></label>
         <div id="board" class="board"></div>
         <div id="options" class="options"></div>
-        <div id="wheel" class="wheel"></div>
+
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <canvas id="wheel" width="300" height="300"></canvas>
+        </div>
         <pre id="result"></pre>
 
     </div>
@@ -30,9 +34,55 @@
 
         const options = document.getElementById('options');
         const wheel = document.getElementById('wheel');
+        const ctx = wheel.getContext('2d');
         const amountInput = document.getElementById('amount');
 
         const RED = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+        const WHEEL_NUMBERS = Array.from({length:37}, (_,i) => i);
+        const ANGLE_STEP = 360 / WHEEL_NUMBERS.length;
+        let wheelAngle = 0;
+
+        function drawWheel(){
+            const center = wheel.width/2;
+            const radius = center - 10;
+            ctx.clearRect(0,0,wheel.width,wheel.height);
+            WHEEL_NUMBERS.forEach((num,i)=>{
+                const start = (i*ANGLE_STEP-90) * Math.PI/180;
+                const end = ((i+1)*ANGLE_STEP-90) * Math.PI/180;
+                if(num===0) ctx.fillStyle = '#0a8f08';
+                else if(RED.includes(num)) ctx.fillStyle = '#e00000';
+                else ctx.fillStyle = '#000';
+                ctx.beginPath();
+                ctx.moveTo(center,center);
+                ctx.arc(center,center,radius,start,end);
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#fff';
+                ctx.stroke();
+                ctx.save();
+                ctx.translate(center,center);
+                ctx.rotate(start+(end-start)/2);
+                ctx.fillStyle = '#fff';
+                ctx.font = '12px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(num.toString(), radius-20,0);
+                ctx.restore();
+            });
+        }
+        drawWheel();
+
+        function spinWheel(number){
+            const index = WHEEL_NUMBERS.indexOf(number);
+            const target = index * ANGLE_STEP;
+            wheelAngle += 720 + (360 - target);
+            wheel.style.transition = 'transform 4s cubic-bezier(0.33,1,0.68,1)';
+            wheel.style.transform = `rotate(${wheelAngle}deg)`;
+            setTimeout(()=>highlightCell(number),4000);
+        }
+
+        let lastSpin = null;
+
 
         function addBetCell(container, label, type, value, colorClass) {
             const cell = document.createElement('div');
@@ -48,14 +98,15 @@
         for (let n = 0; n <= 36; n++) {
             const cell = document.createElement('div');
             cell.textContent = n;
-
             cell.dataset.type = 'number';
-
             cell.dataset.value = n;
-            if (n === 0) cell.classList.add('green');
-            else if (RED.includes(n)) cell.classList.add('red');
-            else cell.classList.add('black');
-
+            if (n === 0) {
+                cell.classList.add('green', 'zero');
+            } else if (RED.includes(n)) {
+                cell.classList.add('red');
+            } else {
+                cell.classList.add('black');
+            }
             cell.addEventListener('click', () => placeBet('number', n, cell));
             board.appendChild(cell);
         }
@@ -105,6 +156,13 @@
         }
 
 
+        function highlightCell(num) {
+            document.querySelectorAll('.board div').forEach(c => c.classList.remove('highlight'));
+            const el = document.querySelector(`.board div[data-value="${num}"]`);
+            if (el) el.classList.add('highlight');
+        }
+
+
         async function poll() {
             const token = localStorage.getItem('token');
             const url = token ? `${API_BASE}/round_status?token=${token}` : `${API_BASE}/round_status`;
@@ -121,12 +179,14 @@
                     options.classList.remove('disabled');
 
                 }
+                if (data.last_spin && (!lastSpin || lastSpin.number !== data.last_spin.number)) {
+                    lastSpin = data.last_spin;
+                    spinWheel(lastSpin.number);
+                    result.textContent = JSON.stringify(lastSpin, null, 2);
+                }
                 if (data.result) {
-                    wheel.classList.add('spin');
-                    setTimeout(() => {
-                        wheel.classList.remove('spin');
-                        result.textContent = JSON.stringify(data.result, null, 2);
-                    }, 2000);
+                    result.textContent = JSON.stringify(data.result, null, 2);
+
                 }
             } catch (err) {
                 console.error(err);
