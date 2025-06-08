@@ -19,11 +19,12 @@ SQLite データベース `users.db` に保存されます。
 
 - Python 3.8 以上
 - `fastapi` と `uvicorn` パッケージ
+- パスワードハッシュ化に `passlib[bcrypt]`
 
 インストールは以下のコマンドを実行してください。
 
 ```bash
-pip install fastapi uvicorn
+pip install fastapi uvicorn passlib[bcrypt]
 ```
 
 ## サービスの起動方法

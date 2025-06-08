@@ -8,6 +8,7 @@ import uuid
 import sqlite3
 from pathlib import Path
 
+
 app = FastAPI(title="Roulette Service")  # FastAPI アプリケーションを作成
 
 # CORS を許可してフロントエンドからのアクセスを容易にする
@@ -20,6 +21,9 @@ app.add_middleware(
 
 # メモリ上のセッション管理
 sessions = {}
+
+# パスワードハッシュ化用コンテキスト
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # SQLite データベース初期化
 DB_PATH = str(Path(__file__).parent / "users.db")
@@ -62,6 +66,7 @@ class SpinRequest(Bet):
 def register(req: RegisterRequest):
     """ユーザー登録処理"""
 
+
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
         cur = conn.execute(
@@ -76,11 +81,13 @@ def register(req: RegisterRequest):
         )
         conn.commit()
 
+
     return {"message": "registered"}
 
 @app.post("/login")
 def login(req: LoginRequest):
     """ログイン処理: トークンを返す"""
+
 
     with sqlite3.connect(DB_PATH) as conn:
         conn.row_factory = sqlite3.Row
@@ -91,6 +98,7 @@ def login(req: LoginRequest):
         row = cur.fetchone()
         if not row or row["password"] != req.password:
             raise HTTPException(status_code=401, detail="ログイン失敗")
+
 
     token = uuid.uuid4().hex
     sessions[token] = req.username
