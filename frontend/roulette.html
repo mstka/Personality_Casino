@@ -20,6 +20,13 @@
                 <option value="number">数字</option>
                 <option value="color">色</option>
                 <option value="parity">奇偶</option>
+
+                <option value="dozen1">1st 12</option>
+                <option value="dozen2">2nd 12</option>
+                <option value="dozen3">3rd 12</option>
+                <option value="low">Low (1-18)</option>
+                <option value="high">High (19-36)</option>
+
             </select>
             <label for="value">値:</label>
             <input id="value" type="text" />
@@ -43,6 +50,9 @@
 
         const RED = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
 
+        const selected = new Set();
+
+
         for (let n = 0; n <= 36; n++) {
             const cell = document.createElement('div');
             cell.textContent = n;
@@ -51,10 +61,18 @@
             else if (RED.includes(n)) cell.classList.add('red');
             else cell.classList.add('black');
             cell.addEventListener('click', () => {
-                document.querySelectorAll('#board div').forEach(c => c.classList.remove('active'));
-                cell.classList.add('active');
-                document.getElementById('bet-type').value = 'number';
-                document.getElementById('value').value = n;
+
+                if (selected.has(n)) {
+                    selected.delete(n);
+                    cell.classList.remove('active');
+                } else {
+                    selected.add(n);
+                    cell.classList.add('active');
+                }
+                const arr = Array.from(selected);
+                document.getElementById('value').value = arr.join(',');
+                document.getElementById('bet-type').value = arr.length > 1 ? 'multi' : 'number';
+
             });
             board.appendChild(cell);
         }
@@ -66,9 +84,18 @@
                 alert('先にログインしてください');
                 return;
             }
+            let type = document.getElementById('bet-type').value;
+            let val = document.getElementById('value').value;
+            if (type.startsWith('dozen')) {
+                val = type.replace('dozen','');
+                type = 'dozen';
+            } else if (type === 'low' || type === 'high') {
+                val = type;
+                type = 'range';
+            }
             const bet = {
-                bet_type: document.getElementById('bet-type').value,
-                value: document.getElementById('value').value,
+                bet_type: type,
+                value: val,
                 amount: parseFloat(document.getElementById('amount').value),
                 token: token
             };
