@@ -8,6 +8,8 @@
 
 ユーザー名・パスワード・コイン残高はバックエンドディレクトリに作成される
 SQLite データベース `users.db` に保存されます。
+各エンドポイントでは毎回 `sqlite3.connect()` を `with` 文で呼び出し、
+接続とクローズを自動化しています。
 
 ルーレットゲームではログイン後にコインをベットし、結果に応じて残高が増減します。
 ホーム画面からゲーム画面やユーザー画面へ移動できます。
@@ -17,11 +19,12 @@ SQLite データベース `users.db` に保存されます。
 
 - Python 3.8 以上
 - `fastapi` と `uvicorn` パッケージ
+- パスワードハッシュ化に `passlib[bcrypt]`
 
 インストールは以下のコマンドを実行してください。
 
 ```bash
-pip install fastapi uvicorn
+pip install fastapi uvicorn passlib[bcrypt]
 ```
 
 ## サービスの起動方法

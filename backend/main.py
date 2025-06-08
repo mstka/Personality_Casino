@@ -1,5 +1,4 @@
 from fastapi import FastAPI, HTTPException
-
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import random
@@ -20,20 +19,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
 # メモリ上のセッション管理
 sessions = {}
 
+# パスワードハッシュ化用コンテキスト
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
 # SQLite データベース初期化
 DB_PATH = str(Path(__file__).parent / "users.db")
-conn = sqlite3.connect(DB_PATH, check_same_thread=False)
-conn.row_factory = sqlite3.Row
-cur = conn.cursor()
-cur.execute(
-    "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, coins INTEGER)"
-)
-conn.commit()
-
+with sqlite3.connect(DB_PATH) as conn:
+    conn.execute(
+        "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, coins INTEGER)"
+    )
 
 class BetType(str, Enum):
     """賭けの種類"""
@@ -47,64 +44,65 @@ class Bet(BaseModel):
     value: str
     amount: float
 
-
 class RegisterRequest(BaseModel):
     """ユーザー登録用リクエスト"""
     username: str
     password: str
-
 
 class LoginRequest(BaseModel):
     """ログイン用リクエスト"""
     username: str
     password: str
 
-
 class Token(BaseModel):
     """セッション確認用トークン"""
     token: str
-
 
 class SpinRequest(Bet):
     """トークン付きのベット"""
     token: str
 
-
 @app.post("/register")
 def register(req: RegisterRequest):
     """ユーザー登録処理"""
 
-    cur = conn.execute(
-        "SELECT username FROM users WHERE username = ?",
-        (req.username,)
-    )
-    if cur.fetchone():
-        raise HTTPException(status_code=400, detail="既に存在するユーザー名です")
-    conn.execute(
-        "INSERT INTO users (username, password, coins) VALUES (?, ?, ?)",
-        (req.username, req.password, 1000),
-    )
-    conn.commit()
+
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute(
+            "SELECT username FROM users WHERE username = ?",
+            (req.username,),
+        )
+        if cur.fetchone():
+            raise HTTPException(status_code=400, detail="既に存在するユーザー名です")
+        conn.execute(
+            "INSERT INTO users (username, password, coins) VALUES (?, ?, ?)",
+            (req.username, req.password, 1000),
+        )
+        conn.commit()
+
 
     return {"message": "registered"}
-
 
 @app.post("/login")
 def login(req: LoginRequest):
     """ログイン処理: トークンを返す"""
 
-    cur = conn.execute(
-        "SELECT username, password FROM users WHERE username = ?",
-        (req.username,),
-    )
-    row = cur.fetchone()
-    if not row or row["password"] != req.password:
 
-        raise HTTPException(status_code=401, detail="ログイン失敗")
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute(
+            "SELECT username, password FROM users WHERE username = ?",
+            (req.username,),
+        )
+        row = cur.fetchone()
+        if not row or row["password"] != req.password:
+            raise HTTPException(status_code=401, detail="ログイン失敗")
+
+
     token = uuid.uuid4().hex
     sessions[token] = req.username
     return {"token": token}
-
 
 @app.post("/balance")
 def balance(token: Token):
@@ -113,15 +111,16 @@ def balance(token: Token):
     if not username:
         raise HTTPException(status_code=401, detail="認証エラー")
 
-    cur = conn.execute(
-        "SELECT coins FROM users WHERE username = ?",
-        (username,),
-    )
-    row = cur.fetchone()
-    if not row:
-        raise HTTPException(status_code=400, detail="ユーザーが見つかりません")
-    return {"coins": row["coins"]}
-
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute(
+            "SELECT coins FROM users WHERE username = ?",
+            (username,),
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=400, detail="ユーザーが見つかりません")
+        return {"coins": row["coins"]}
 
 # ルーレットの色分け (ヨーロピアンスタイル 0 あり)
 RED_NUMBERS = {
@@ -143,66 +142,63 @@ def spin(bet: SpinRequest):
     if bet.amount <= 0:
         raise HTTPException(status_code=400, detail="Bet amount must be positive")
 
-    cur = conn.execute(
-        "SELECT coins FROM users WHERE username = ?",
-        (username,),
-    )
-    row = cur.fetchone()
-    if not row:
-        raise HTTPException(status_code=400, detail="ユーザーが見つかりません")
-    coins = row["coins"]
-    if coins < bet.amount:
-        raise HTTPException(status_code=400, detail="コイン残高が不足しています")
+    with sqlite3.connect(DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cur = conn.execute(
+            "SELECT coins FROM users WHERE username = ?",
+            (username,),
+        )
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=400, detail="ユーザーが見つかりません")
+        coins = row["coins"]
+        if coins < bet.amount:
+            raise HTTPException(status_code=400, detail="コイン残高が不足しています")
 
-    coins -= bet.amount
+        coins -= bet.amount
 
+        number = random.randint(0, 36)
+        if number == 0:
+            color = "green"
+        elif number in RED_NUMBERS:
+            color = "red"
+        else:
+            color = "black"
 
-    number = random.randint(0, 36)
-    if number == 0:
-        color = "green"
-    elif number in RED_NUMBERS:
-        color = "red"
-    else:
-        color = "black"
+        parity = "even" if number != 0 and number % 2 == 0 else "odd"  # 0 は奇数扱い
+        result = {
+            "number": number,
+            "color": color,
+            "parity": parity
+        }
 
-    parity = "even" if number != 0 and number % 2 == 0 else "odd"  # 0 は奇数扱い
-    result = {
-        "number": number,
-        "color": color,
-        "parity": parity
-    }
+        win = False
+        payout = 0.0  # 払い戻し金額
 
-    win = False
-    payout = 0.0  # 払い戻し金額
+        if bet.bet_type == BetType.number:
+            if bet.value.isdigit() and int(bet.value) == number:
+                win = True
+                payout = bet.amount * 35
+        elif bet.bet_type == BetType.color:
+            if bet.value.lower() == color:
+                win = True
+                payout = bet.amount
+        elif bet.bet_type == BetType.parity:
+            if bet.value.lower() == parity:
+                win = True
+                payout = bet.amount
 
-    if bet.bet_type == BetType.number:
-        if bet.value.isdigit() and int(bet.value) == number:
-            win = True
-            payout = bet.amount * 35
-    elif bet.bet_type == BetType.color:
-        if bet.value.lower() == color:
-            win = True
-            payout = bet.amount
-    elif bet.bet_type == BetType.parity:
-        if bet.value.lower() == parity:
-            win = True
-            payout = bet.amount
-
-
-    # 払い戻し
-    coins += payout
-    conn.execute(
-        "UPDATE users SET coins = ? WHERE username = ?",
-        (coins, username),
-    )
-    conn.commit()
-
+        # 払い戻し
+        coins += payout
+        conn.execute(
+            "UPDATE users SET coins = ? WHERE username = ?",
+            (coins, username),
+        )
+        conn.commit()
 
     return {
         "result": result,
         "bet_outcome": "win" if win else "lose",
         "payout": payout,
         "coins": coins,
-
     }  # JSON レスポンスとして結果を返す
-
