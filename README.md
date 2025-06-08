@@ -1,5 +1,6 @@
 # Personality Casino
 
+
 このリポジトリはオンラインカジノサービスの簡易プロトタイプです。
 バックエンドは **FastAPI**、フロントエンドはシンプルな HTML ページで構成されています。
 
@@ -28,6 +29,7 @@ uvicorn backend.main:app --reload
 ```
 
 その後ブラウザで `frontend/index.html` を開いてください。ファイルを直接開く場合 (`file://` スキーム) は各 HTML の `API_BASE` 定数をバックエンドの URL (`http://localhost:8000` など) に合わせます。`python -m http.server` などでフロントエンドを HTTP 配信すると同一オリジンとなり、設定変更なしで動作します。
+
 
 ## ルーレットの簡易ルール
 
