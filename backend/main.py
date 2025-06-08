@@ -1,18 +1,60 @@
 from fastapi import FastAPI, HTTPException
+import sqlite3
+from pathlib import Path
 
-from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
-import random
-from enum import Enum
-import uuid
+# メモリ上のセッション管理
+# SQLite データベース初期化
+DB_PATH = str(Path(__file__).parent / "users.db")
+conn = sqlite3.connect(DB_PATH, check_same_thread=False)
+conn.row_factory = sqlite3.Row
+cur = conn.cursor()
+cur.execute(
+    "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, coins INTEGER)"
+)
+conn.commit()
 
-app = FastAPI(title="Roulette Service")  # FastAPI アプリケーションを作成
+    cur = conn.execute(
+        "SELECT username FROM users WHERE username = ?",
+        (req.username,)
+    )
+    if cur.fetchone():
+    conn.execute(
+        "INSERT INTO users (username, password, coins) VALUES (?, ?, ?)",
+        (req.username, req.password, 1000),
+    )
+    conn.commit()
+    cur = conn.execute(
+        "SELECT username, password FROM users WHERE username = ?",
+        (req.username,),
+    )
+    row = cur.fetchone()
+    if not row or row["password"] != req.password:
+    cur = conn.execute(
+        "SELECT coins FROM users WHERE username = ?",
+        (username,),
+    )
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=400, detail="ユーザーが見つかりません")
+    return {"coins": row["coins"]}
 
-# CORS を許可してフロントエンドからのアクセスを容易にする
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
+    cur = conn.execute(
+        "SELECT coins FROM users WHERE username = ?",
+        (username,),
+    )
+    row = cur.fetchone()
+    if not row:
+        raise HTTPException(status_code=400, detail="ユーザーが見つかりません")
+    coins = row["coins"]
+    if coins < bet.amount:
+    coins -= bet.amount
+    coins += payout
+    conn.execute(
+        "UPDATE users SET coins = ? WHERE username = ?",
+        (coins, username),
+    )
+    conn.commit()
+        "coins": coins,
     allow_headers=["*"],
 )
 
