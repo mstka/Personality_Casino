@@ -71,6 +71,7 @@ pre {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+
 .countdown {
     font-size: 1.2em;
     margin-bottom: 10px;
@@ -79,6 +80,7 @@ pre {
 .board {
     position: relative;
     display: grid;
+
     grid-template-columns: repeat(3, 60px);
     grid-auto-rows: 40px;
     background: #006400;
@@ -107,6 +109,7 @@ pre {
 .board .black { background: #000; }
 .board .green { background: #0a8f08; }
 .board div.highlight { box-shadow: 0 0 10px 3px #ffd700; }
+
 .bet-spot {
     position: absolute;
     width: 16px;
@@ -115,11 +118,14 @@ pre {
     border-radius: 50%;
     box-sizing: border-box;
     cursor: pointer;
+
     pointer-events: auto;
+
 }
 .bet-spot:hover {
     background: rgba(255, 255, 255, 0.3);
 }
+
 
 .options {
     display: grid;
@@ -135,6 +141,7 @@ pre {
     cursor: pointer;
     background: #eee;
 }
+
 
 .message {
     text-align: center;
@@ -161,6 +168,7 @@ pre {
     color: #000;
     margin: 0 auto;
 }
+
 
 .wheel-container {
     width: 300px;
@@ -189,3 +197,4 @@ pre {
     transform: translateX(-50%);
     z-index: 2;
 }
+

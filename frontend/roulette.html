@@ -11,16 +11,19 @@
     <div class="container">
         <h1>ルーレット</h1>
         <p><a href="index.html">ホームに戻る</a></p>
+
         <div id="countdown" class="countdown"></div>
         <label>ベット額: <input id="amount" type="number" min="1" step="1" value="1"></label>
         <div id="board" class="board"></div>
         <div id="options" class="options"></div>
         <div id="message" class="message"></div>
+
         <div class="wheel-container">
             <div class="pointer"></div>
             <canvas id="wheel" width="300" height="300"></canvas>
         </div>
         <pre id="result"></pre>
+
     </div>
 
     <script>
@@ -28,13 +31,17 @@
 
         const result = document.getElementById('result');
         const countdown = document.getElementById('countdown');
+
         const message = document.getElementById('message');
         const board = document.getElementById('board');
+
         const options = document.getElementById('options');
         const wheel = document.getElementById('wheel');
         const ctx = wheel.getContext('2d');
         const amountInput = document.getElementById('amount');
+
         const placedChips = [];
+
 
         const RED = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
         const WHEEL_NUMBERS = Array.from({length:37}, (_,i) => i);
@@ -71,17 +78,20 @@
         }
         drawWheel();
 
+
        function spinWheel(number){
            const index = WHEEL_NUMBERS.indexOf(number);
             const base = 90 - ANGLE_STEP / 2;
             const target = base - index * ANGLE_STEP;
             wheelAngle += 720 + target - (wheelAngle % 360);
+
             wheel.style.transition = 'transform 4s cubic-bezier(0.33,1,0.68,1)';
             wheel.style.transform = `rotate(${wheelAngle}deg)`;
             setTimeout(()=>highlightCell(number),4000);
         }
 
         let lastSpin = null;
+
 
         function addBetCell(container, label, type, value, colorClass) {
             const cell = document.createElement('div');
@@ -125,7 +135,9 @@
             s.dataset.type = 'multi';
             s.dataset.value = nums.join(',');
             s.addEventListener('click', () => placeBet('multi', s.dataset.value, s));
+
             board.appendChild(s);
+
         }
 
         const cellW = 60, cellH = 40, gap = 2, border = 4, spotSize = 16;
@@ -161,6 +173,7 @@
             }
         }
 
+
         const outside = [
             ['Red', 'color', 'red', 'red'],
             ['Black', 'color', 'black', 'black'],
@@ -175,11 +188,13 @@
         outside.forEach(o => addBetCell(options, o[0], o[1], o[2], o[3]));
 
        async function placeBet(type, value, cell) {
+
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('先にログインしてください');
                 return;
             }
+
             const amount = parseFloat(amountInput.value);
             if (!amount || amount <= 0) {
                 alert('金額を入力してください');
@@ -197,6 +212,7 @@
             } catch (err) {
                 console.error(err);
             }
+
             let chip = cell.querySelector('.chip');
             if (chip) {
                 chip.textContent = parseFloat(chip.textContent) + amount;
@@ -209,11 +225,13 @@
             placedChips.push(chip);
         }
 
+
         function highlightCell(num) {
             document.querySelectorAll('.board div').forEach(c => c.classList.remove('highlight'));
             const el = document.querySelector(`.board div[data-value="${num}"]`);
             if (el) el.classList.add('highlight');
         }
+
 
         async function poll() {
             const token = localStorage.getItem('token');
@@ -223,27 +241,32 @@
                 const data = await res.json();
                 countdown.textContent = `次のスピンまで: ${data.time_remaining}秒`;
                 if (data.time_remaining <= 5) {
+
                     board.classList.add('disabled');
                     options.classList.add('disabled');
                 } else {
                     board.classList.remove('disabled');
                     options.classList.remove('disabled');
+
                 }
                 if (data.last_spin && (!lastSpin || lastSpin.number !== data.last_spin.number)) {
                     lastSpin = data.last_spin;
                     placedChips.forEach(c => c.remove());
                     placedChips.length = 0;
+
                     spinWheel(lastSpin.number);
                     result.textContent = JSON.stringify(lastSpin, null, 2);
                 }
                 if (data.result) {
                     result.textContent = JSON.stringify(data.result, null, 2);
+
                     message.textContent = data.result.bet_outcome === 'win'
                         ? `WIN +${data.result.payout}`
                         : `LOSE`;
                     message.textContent += `  Balance: ${data.result.coins}`;
                     message.classList.remove('win','lose');
                     message.classList.add(data.result.bet_outcome === 'win' ? 'win' : 'lose');
+
                 }
             } catch (err) {
                 console.error(err);
