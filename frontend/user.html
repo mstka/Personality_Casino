@@ -4,12 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ユーザー画面</title>
-    <style>
-        body { font-family: Arial, sans-serif; margin: 40px; }
-        label, input { margin: 5px; }
-    </style>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div class="container">
     <h1>ユーザー画面</h1>
     <p><a href="index.html">ホームに戻る</a></p>
 
@@ -30,6 +28,7 @@
     <h2>残高</h2>
     <button id="check-balance">残高確認</button>
     <pre id="balance"></pre>
+    </div>
 
     <script>
         const API_BASE = 'http://localhost:8000'; // バックエンドのURL
