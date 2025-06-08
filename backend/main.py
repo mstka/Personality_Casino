@@ -1,11 +1,14 @@
 from fastapi import FastAPI, HTTPException
+
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import random
 from enum import Enum
 import uuid
+
 import sqlite3
 from pathlib import Path
+
 
 app = FastAPI(title="Roulette Service")  # FastAPI アプリケーションを作成
 
@@ -16,6 +19,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # メモリ上のセッション管理
 sessions = {}
@@ -29,6 +33,7 @@ cur.execute(
     "CREATE TABLE IF NOT EXISTS users (username TEXT PRIMARY KEY, password TEXT, coins INTEGER)"
 )
 conn.commit()
+
 
 class BetType(str, Enum):
     """賭けの種類"""
@@ -68,6 +73,7 @@ class SpinRequest(Bet):
 @app.post("/register")
 def register(req: RegisterRequest):
     """ユーザー登録処理"""
+
     cur = conn.execute(
         "SELECT username FROM users WHERE username = ?",
         (req.username,)
@@ -79,18 +85,21 @@ def register(req: RegisterRequest):
         (req.username, req.password, 1000),
     )
     conn.commit()
+
     return {"message": "registered"}
 
 
 @app.post("/login")
 def login(req: LoginRequest):
     """ログイン処理: トークンを返す"""
+
     cur = conn.execute(
         "SELECT username, password FROM users WHERE username = ?",
         (req.username,),
     )
     row = cur.fetchone()
     if not row or row["password"] != req.password:
+
         raise HTTPException(status_code=401, detail="ログイン失敗")
     token = uuid.uuid4().hex
     sessions[token] = req.username
@@ -103,6 +112,7 @@ def balance(token: Token):
     username = sessions.get(token.token)
     if not username:
         raise HTTPException(status_code=401, detail="認証エラー")
+
     cur = conn.execute(
         "SELECT coins FROM users WHERE username = ?",
         (username,),
@@ -111,6 +121,7 @@ def balance(token: Token):
     if not row:
         raise HTTPException(status_code=400, detail="ユーザーが見つかりません")
     return {"coins": row["coins"]}
+
 
 # ルーレットの色分け (ヨーロピアンスタイル 0 あり)
 RED_NUMBERS = {
@@ -131,6 +142,7 @@ def spin(bet: SpinRequest):
     # ベット額の簡易チェックと残高確認
     if bet.amount <= 0:
         raise HTTPException(status_code=400, detail="Bet amount must be positive")
+
     cur = conn.execute(
         "SELECT coins FROM users WHERE username = ?",
         (username,),
@@ -143,6 +155,7 @@ def spin(bet: SpinRequest):
         raise HTTPException(status_code=400, detail="コイン残高が不足しています")
 
     coins -= bet.amount
+
 
     number = random.randint(0, 36)
     if number == 0:
@@ -175,6 +188,7 @@ def spin(bet: SpinRequest):
             win = True
             payout = bet.amount
 
+
     # 払い戻し
     coins += payout
     conn.execute(
@@ -183,10 +197,12 @@ def spin(bet: SpinRequest):
     )
     conn.commit()
 
+
     return {
         "result": result,
         "bet_outcome": "win" if win else "lose",
         "payout": payout,
         "coins": coins,
+
     }  # JSON レスポンスとして結果を返す
 
