@@ -1,0 +1,155 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #FFF9E6;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+nav {
+    background-color: #FFD54F;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+}
+
+nav a {
+    margin-right: 15px;
+    text-decoration: none;
+    color: #333;
+    font-weight: bold;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+form {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+label,
+input,
+select {
+    display: block;
+    margin: 5px 0;
+}
+
+input,
+select {
+    padding: 5px;
+    width: 100%;
+    max-width: 300px;
+}
+
+button {
+    background-color: #FFD54F;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #FFC107;
+}
+
+pre {
+    background-color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.countdown {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
+
+.board {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.board div {
+    padding: 10px;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #eee;
+}
+
+.board .red { background: #ffcccc; }
+.board .black { background: #dddddd; }
+.board .green { background: #ccffcc; }
+.board div.active { outline: 2px solid #FFD54F; }
+
+.options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-bottom: 20px;
+}
+
+.options div {
+    padding: 10px;
+    text-align: center;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #eee;
+}
+
+.disabled div {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.chip {
+    width: 16px;
+    height: 16px;
+    background: #FFD54F;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+.wheel {
+    width: 200px;
+    height: 200px;
+    border: 8px solid #333;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
+.wheel::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 4px;
+    height: 4px;
+    background: #333;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.wheel.spin {
+    animation: spin 2s ease-out;
+}
