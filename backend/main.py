@@ -33,6 +33,7 @@ class Bet(BaseModel):
     value: str
     amount: float
 
+
 class RegisterRequest(BaseModel):
     """ユーザー登録用リクエスト"""
     username: str

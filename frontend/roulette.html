@@ -31,6 +31,8 @@
 
     <script>
         // API と通信する簡易スクリプト
+        const API_BASE = 'http://localhost:8000';
+
         const form = document.getElementById('bet-form');
         const result = document.getElementById('result');
         const token = localStorage.getItem('token');
@@ -47,7 +49,8 @@
                 amount: parseFloat(document.getElementById('amount').value),
                 token: token
             };
-            const res = await fetch('/spin', {
+            const res = await fetch(`${API_BASE}/spin`, {
+
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bet)

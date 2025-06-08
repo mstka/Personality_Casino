@@ -32,6 +32,8 @@
     <pre id="balance"></pre>
 
     <script>
+        const API_BASE = 'http://localhost:8000'; // バックエンドのURL
+
         const registerForm = document.getElementById('register-form');
         const loginForm = document.getElementById('login-form');
         const balanceBtn = document.getElementById('check-balance');
@@ -43,7 +45,8 @@
                 username: document.getElementById('reg-user').value,
                 password: document.getElementById('reg-pass').value
             };
-            const res = await fetch('/register', {
+            const res = await fetch(`${API_BASE}/register`, {
+
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -58,7 +61,7 @@
                 username: document.getElementById('login-user').value,
                 password: document.getElementById('login-pass').value
             };
-            const res = await fetch('/login', {
+            const res = await fetch(`${API_BASE}/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
@@ -78,7 +81,8 @@
                 alert('ログインしてください');
                 return;
             }
-            const res = await fetch('/balance', {
+            const res = await fetch(`${API_BASE}/balance`, {
+
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ token: token })

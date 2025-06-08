@@ -9,7 +9,6 @@
 ホーム画面からゲーム画面やユーザー画面へ移動できます。
 現状ゲームはルーレットのみですが、今後他のゲームを追加することを想定しています。
 
-
 ## 必要なもの
 
 - Python 3.8 以上
@@ -29,8 +28,7 @@ pip install fastapi uvicorn
 uvicorn backend.main:app --reload
 ```
 
-
-その後 `frontend/index.html` をブラウザで開くとホーム画面が表示され、ユーザー登録やログイン後にゲーム画面へ移動できます。
+その後ブラウザで `frontend/index.html` を開いてください。ファイルを直接開く場合 (`file://` スキーム) は各 HTML の `API_BASE` 定数をバックエンドの URL (`http://localhost:8000` など) に合わせます。`python -m http.server` などでフロントエンドを HTTP 配信すると同一オリジンとなり、設定変更なしで動作します。
 
 
 ## ルーレットの簡易ルール
