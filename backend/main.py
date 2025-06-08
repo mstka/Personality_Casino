@@ -47,9 +47,12 @@ with sqlite3.connect(DB_PATH) as conn:
 
 class BetType(str, Enum):
     """賭けの種類"""
-    number = "number"
-    color = "color"
-    parity = "parity"
+    number = "number"       # 単一の数字
+    color = "color"         # 赤・黒
+    parity = "parity"       # 奇数・偶数
+    dozen = "dozen"         # 1st/2nd/3rd 12
+    range = "range"         # low/high
+    multi = "multi"         # 2,3,4,5,12 個の数字
 
 class Bet(BaseModel):
     """ベット情報を保持するデータモデル"""
@@ -196,6 +199,9 @@ BLACK_NUMBERS = {
     2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35
 }
 
+
+MULTI_PAYOUTS = {2: 17, 3: 11, 4: 8, 5: 6, 12: 2}
+
 async def spin_loop():
     """一定間隔で自動的にルーレットを回すループ"""
     global current_end_time, queued_bets, results_by_token, last_spin_result
@@ -240,6 +246,15 @@ async def spin_loop():
                     if bet["value"].isdigit() and int(bet["value"]) == number:
                         win = True
                         payout = bet["amount"] * 35
+
+                elif bet["bet_type"] == BetType.multi:
+                    nums = [int(x) for x in bet["value"].split(',') if x.strip().isdigit()]
+                    if number in nums:
+                        win = True
+                        multi = len(nums)
+                        factor = MULTI_PAYOUTS.get(multi, max(1, 36 // multi - 1))
+                        payout = bet["amount"] * factor
+
                 elif bet["bet_type"] == BetType.color:
                     if bet["value"].lower() == color:
                         win = True
@@ -248,6 +263,21 @@ async def spin_loop():
                     if bet["value"].lower() == parity:
                         win = True
                         payout = bet["amount"]
+
+                elif bet["bet_type"] == BetType.dozen:
+                    if bet["value"] in {"1", "2", "3"}:
+                        start = (int(bet["value"]) - 1) * 12 + 1
+                        if start <= number <= start + 11:
+                            win = True
+                            payout = bet["amount"] * 2
+                elif bet["bet_type"] == BetType.range:
+                    if bet["value"].lower() == "low" and 1 <= number <= 18:
+                        win = True
+                        payout = bet["amount"]
+                    elif bet["value"].lower() == "high" and 19 <= number <= 36:
+                        win = True
+                        payout = bet["amount"]
+
 
                 coins += payout
                 conn.execute(
@@ -315,12 +345,32 @@ def spin(bet: SpinRequest):
             if bet.value.isdigit() and int(bet.value) == number:
                 win = True
                 payout = bet.amount * 35
+        elif bet.bet_type == BetType.multi:
+            nums = [int(x) for x in bet.value.split(',') if x.strip().isdigit()]
+            if number in nums:
+                win = True
+                factor = MULTI_PAYOUTS.get(len(nums), max(1, 36 // len(nums) - 1))
+                payout = bet.amount * factor
         elif bet.bet_type == BetType.color:
             if bet.value.lower() == color:
                 win = True
                 payout = bet.amount
         elif bet.bet_type == BetType.parity:
             if bet.value.lower() == parity:
+                win = True
+                payout = bet.amount
+        elif bet.bet_type == BetType.dozen:
+            if bet.value in {"1", "2", "3"}:
+                start = (int(bet.value) - 1) * 12 + 1
+                if start <= number <= start + 11:
+                    win = True
+                    payout = bet.amount * 2
+        elif bet.bet_type == BetType.range:
+            val = bet.value.lower()
+            if val == "low" and 1 <= number <= 18:
+                win = True
+                payout = bet.amount
+            elif val == "high" and 19 <= number <= 36:
                 win = True
                 payout = bet.amount
 
