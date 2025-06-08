@@ -11,64 +11,61 @@
     <div class="container">
         <h1>ルーレット</h1>
         <p><a href="index.html">ホームに戻る</a></p>
+        <label>ベット額: <input id="amount" type="number" min="1" step="1" value="1"></label>
+        <div id="options" class="options"></div>
+        const options = document.getElementById('options');
+        const amountInput = document.getElementById('amount');
 
-        <div id="countdown" class="countdown"></div>
-        <div id="board" class="board"></div>
-        <form id="bet-form">
-            <label for="bet-type">賭けの種類:</label>
-            <select id="bet-type">
-                <option value="number">数字</option>
-                <option value="color">色</option>
-                <option value="parity">奇偶</option>
-
-                <option value="dozen1">1st 12</option>
-                <option value="dozen2">2nd 12</option>
-                <option value="dozen3">3rd 12</option>
-                <option value="low">Low (1-18)</option>
-                <option value="high">High (19-36)</option>
-
-            </select>
-            <label for="value">値:</label>
-            <input id="value" type="text" />
-            <label for="amount">金額:</label>
-            <input id="amount" type="number" min="1" step="1" />
-            <button type="submit">ベット</button>
-        </form>
-        <div id="wheel" class="wheel"></div>
-        <pre id="result"></pre>
-
-    </div>
-
-    <script>
-        const API_BASE = 'http://localhost:8000';
-
-        const form = document.getElementById('bet-form');
-        const result = document.getElementById('result');
-        const countdown = document.getElementById('countdown');
-        const board = document.getElementById('board');
-        const wheel = document.getElementById('wheel');
-
-        const RED = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
-
-        const selected = new Set();
-
-
-        for (let n = 0; n <= 36; n++) {
+        function addBetCell(container, label, type, value, colorClass) {
             const cell = document.createElement('div');
-            cell.textContent = n;
-            cell.dataset.value = n;
-            if (n === 0) cell.classList.add('green');
-            else if (RED.includes(n)) cell.classList.add('red');
-            else cell.classList.add('black');
-            cell.addEventListener('click', () => {
+            cell.textContent = label;
+            cell.dataset.type = type;
+            cell.dataset.value = value;
+            if (colorClass) cell.classList.add(colorClass);
+            cell.addEventListener('click', () => placeBet(type, value, cell));
+            container.appendChild(cell);
+        }
+            cell.dataset.type = 'number';
+            cell.addEventListener('click', () => placeBet('number', n, cell));
+        const outside = [
+            ['Red', 'color', 'red', 'red'],
+            ['Black', 'color', 'black', 'black'],
+            ['Even', 'parity', 'even', null],
+            ['Odd', 'parity', 'odd', null],
+            ['1st 12', 'dozen', '1', null],
+            ['2nd 12', 'dozen', '2', null],
+            ['3rd 12', 'dozen', '3', null],
+            ['Low', 'range', 'low', null],
+            ['High', 'range', 'high', null]
+        ];
+        outside.forEach(o => addBetCell(options, o[0], o[1], o[2], o[3]));
 
-                if (selected.has(n)) {
-                    selected.delete(n);
-                    cell.classList.remove('active');
-                } else {
-                    selected.add(n);
-                    cell.classList.add('active');
-                }
+        async function placeBet(type, value, cell) {
+            const amount = parseFloat(amountInput.value);
+            if (!amount || amount <= 0) {
+                alert('金額を入力してください');
+                return;
+            const bet = { bet_type: type, value: value, amount: amount, token: token };
+            try {
+                const res = await fetch(`${API_BASE}/place_bet`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(bet)
+                });
+                const data = await res.json();
+                result.textContent = JSON.stringify(data, null, 2);
+            } catch (err) {
+                console.error(err);
+            }
+            const chip = document.createElement('div');
+            chip.className = 'chip';
+            cell.appendChild(chip);
+            setTimeout(() => chip.remove(), 2000);
+        }
+                    board.classList.add('disabled');
+                    options.classList.add('disabled');
+                    board.classList.remove('disabled');
+                    options.classList.remove('disabled');
                 const arr = Array.from(selected);
                 document.getElementById('value').value = arr.join(',');
                 document.getElementById('bet-type').value = arr.length > 1 ? 'multi' : 'number';
