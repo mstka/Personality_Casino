@@ -11,15 +11,18 @@
     <div class="container">
         <h1>ルーレット</h1>
         <p><a href="index.html">ホームに戻る</a></p>
+
         <div id="countdown" class="countdown"></div>
         <label>ベット額: <input id="amount" type="number" min="1" step="1" value="1"></label>
         <div id="board" class="board"></div>
         <div id="options" class="options"></div>
+
         <div class="wheel-container">
             <div class="pointer"></div>
             <canvas id="wheel" width="300" height="300"></canvas>
         </div>
         <pre id="result"></pre>
+
     </div>
 
     <script>
@@ -28,6 +31,7 @@
         const result = document.getElementById('result');
         const countdown = document.getElementById('countdown');
         const board = document.getElementById('board');
+
         const options = document.getElementById('options');
         const wheel = document.getElementById('wheel');
         const ctx = wheel.getContext('2d');
@@ -79,6 +83,7 @@
 
         let lastSpin = null;
 
+
         function addBetCell(container, label, type, value, colorClass) {
             const cell = document.createElement('div');
             cell.textContent = label;
@@ -88,6 +93,7 @@
             cell.addEventListener('click', () => placeBet(type, value, cell));
             container.appendChild(cell);
         }
+
 
         for (let n = 0; n <= 36; n++) {
             const cell = document.createElement('div');
@@ -118,12 +124,14 @@
         ];
         outside.forEach(o => addBetCell(options, o[0], o[1], o[2], o[3]));
 
+
         async function placeBet(type, value, cell) {
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('先にログインしてください');
                 return;
             }
+
             const amount = parseFloat(amountInput.value);
             if (!amount || amount <= 0) {
                 alert('金額を入力してください');
@@ -147,11 +155,13 @@
             setTimeout(() => chip.remove(), 2000);
         }
 
+
         function highlightCell(num) {
             document.querySelectorAll('.board div').forEach(c => c.classList.remove('highlight'));
             const el = document.querySelector(`.board div[data-value="${num}"]`);
             if (el) el.classList.add('highlight');
         }
+
 
         async function poll() {
             const token = localStorage.getItem('token');
@@ -161,11 +171,13 @@
                 const data = await res.json();
                 countdown.textContent = `次のスピンまで: ${data.time_remaining}秒`;
                 if (data.time_remaining <= 5) {
+
                     board.classList.add('disabled');
                     options.classList.add('disabled');
                 } else {
                     board.classList.remove('disabled');
                     options.classList.remove('disabled');
+
                 }
                 if (data.last_spin && (!lastSpin || lastSpin.number !== data.last_spin.number)) {
                     lastSpin = data.last_spin;
@@ -174,6 +186,7 @@
                 }
                 if (data.result) {
                     result.textContent = JSON.stringify(data.result, null, 2);
+
                 }
             } catch (err) {
                 console.error(err);

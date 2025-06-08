@@ -71,6 +71,7 @@ pre {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
+
 .countdown {
     font-size: 1.2em;
     margin-bottom: 10px;
@@ -78,6 +79,7 @@ pre {
 
 .board {
     display: grid;
+
     grid-template-columns: repeat(3, 60px);
     grid-auto-rows: 40px;
     background: #006400;
@@ -107,6 +109,7 @@ pre {
 .board .green { background: #0a8f08; }
 .board div.highlight { box-shadow: 0 0 10px 3px #ffd700; }
 
+
 .options {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -135,6 +138,7 @@ pre {
     margin: 0 auto;
 }
 
+
 .wheel-container {
     width: 300px;
     height: 300px;
@@ -162,3 +166,4 @@ pre {
     transform: translateX(-50%);
     z-index: 2;
 }
+
