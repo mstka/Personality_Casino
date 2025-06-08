@@ -10,6 +10,7 @@ import asyncio
 import sqlite3
 from pathlib import Path
 
+from passlib.context import CryptContext
 
 app = FastAPI(title="Roulette Service")  # FastAPI アプリケーションを作成
 
