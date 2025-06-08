@@ -14,10 +14,9 @@
 
         <div id="countdown" class="countdown"></div>
         <label>ベット額: <input id="amount" type="number" min="1" step="1" value="1"></label>
-        <div id="board" class="board">
-            <div class="overlay" id="overlay"></div>
-        </div>
+        <div id="board" class="board"></div>
         <div id="options" class="options"></div>
+        <div id="message" class="message"></div>
 
         <div class="wheel-container">
             <div class="pointer"></div>
@@ -32,9 +31,9 @@
 
         const result = document.getElementById('result');
         const countdown = document.getElementById('countdown');
-        const board = document.getElementById('board');
 
-        const overlay = document.getElementById('overlay');
+        const message = document.getElementById('message');
+        const board = document.getElementById('board');
 
         const options = document.getElementById('options');
         const wheel = document.getElementById('wheel');
@@ -79,10 +78,13 @@
         }
         drawWheel();
 
-        function spinWheel(number){
-            const index = WHEEL_NUMBERS.indexOf(number);
-            const target = index * ANGLE_STEP;
-            wheelAngle += 720 + (360 - target);
+
+       function spinWheel(number){
+           const index = WHEEL_NUMBERS.indexOf(number);
+            const base = 90 - ANGLE_STEP / 2;
+            const target = base - index * ANGLE_STEP;
+            wheelAngle += 720 + target - (wheelAngle % 360);
+
             wheel.style.transition = 'transform 4s cubic-bezier(0.33,1,0.68,1)';
             wheel.style.transform = `rotate(${wheelAngle}deg)`;
             setTimeout(()=>highlightCell(number),4000);
@@ -133,7 +135,9 @@
             s.dataset.type = 'multi';
             s.dataset.value = nums.join(',');
             s.addEventListener('click', () => placeBet('multi', s.dataset.value, s));
-            overlay.appendChild(s);
+
+            board.appendChild(s);
+
         }
 
         const cellW = 60, cellH = 40, gap = 2, border = 4, spotSize = 16;
@@ -169,6 +173,7 @@
             }
         }
 
+
         const outside = [
             ['Red', 'color', 'red', 'red'],
             ['Black', 'color', 'black', 'black'],
@@ -182,8 +187,8 @@
         ];
         outside.forEach(o => addBetCell(options, o[0], o[1], o[2], o[3]));
 
+       async function placeBet(type, value, cell) {
 
-        async function placeBet(type, value, cell) {
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('先にログインしてください');
@@ -207,11 +212,16 @@
             } catch (err) {
                 console.error(err);
             }
-            const chip = document.createElement('div');
-            chip.className = 'chip';
 
-            chip.textContent = amount;
-            cell.appendChild(chip);
+            let chip = cell.querySelector('.chip');
+            if (chip) {
+                chip.textContent = parseFloat(chip.textContent) + amount;
+            } else {
+                chip = document.createElement('div');
+                chip.className = 'chip';
+                chip.textContent = amount;
+                cell.appendChild(chip);
+            }
             placedChips.push(chip);
         }
 
@@ -249,6 +259,13 @@
                 }
                 if (data.result) {
                     result.textContent = JSON.stringify(data.result, null, 2);
+
+                    message.textContent = data.result.bet_outcome === 'win'
+                        ? `WIN +${data.result.payout}`
+                        : `LOSE`;
+                    message.textContent += `  Balance: ${data.result.coins}`;
+                    message.classList.remove('win','lose');
+                    message.classList.add(data.result.bet_outcome === 'win' ? 'win' : 'lose');
 
                 }
             } catch (err) {
