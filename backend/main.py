@@ -9,6 +9,8 @@ import uuid
 import sqlite3
 from pathlib import Path
 
+from passlib.context import CryptContext
+
 
 app = FastAPI(title="Roulette Service")  # FastAPI アプリケーションを作成
 
@@ -23,6 +25,9 @@ app.add_middleware(
 
 # メモリ上のセッション管理
 sessions = {}
+
+# パスワードハッシュ化用コンテキスト
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 # SQLite データベース初期化
 DB_PATH = str(Path(__file__).parent / "users.db")
@@ -80,9 +85,10 @@ def register(req: RegisterRequest):
     )
     if cur.fetchone():
         raise HTTPException(status_code=400, detail="既に存在するユーザー名です")
+    hashed = pwd_context.hash(req.password)
     conn.execute(
         "INSERT INTO users (username, password, coins) VALUES (?, ?, ?)",
-        (req.username, req.password, 1000),
+        (req.username, hashed, 1000),
     )
     conn.commit()
 
@@ -98,7 +104,7 @@ def login(req: LoginRequest):
         (req.username,),
     )
     row = cur.fetchone()
-    if not row or row["password"] != req.password:
+    if not row or not pwd_context.verify(req.password, row["password"]):
 
         raise HTTPException(status_code=401, detail="ログイン失敗")
     token = uuid.uuid4().hex
