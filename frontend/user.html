@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ユーザー画面</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+    <h1>ユーザー画面</h1>
+    <p><a href="index.html">ホームに戻る</a></p>
+
+    <h2>登録</h2>
+    <form id="register-form">
+        <label>ユーザー名: <input type="text" id="reg-user" /></label>
+        <label>パスワード: <input type="password" id="reg-pass" /></label>
+        <button type="submit">登録</button>
+    </form>
+
+    <h2>ログイン</h2>
+    <form id="login-form">
+        <label>ユーザー名: <input type="text" id="login-user" /></label>
+        <label>パスワード: <input type="password" id="login-pass" /></label>
+        <button type="submit">ログイン</button>
+    </form>
+
+    <h2>残高</h2>
+    <button id="check-balance">残高確認</button>
+    <pre id="balance"></pre>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000'; // バックエンドのURL
+
+        const registerForm = document.getElementById('register-form');
+        const loginForm = document.getElementById('login-form');
+        const balanceBtn = document.getElementById('check-balance');
+        const balancePre = document.getElementById('balance');
+
+        registerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                username: document.getElementById('reg-user').value,
+                password: document.getElementById('reg-pass').value
+            };
+            const res = await fetch(`${API_BASE}/register`, {
+
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            alert(JSON.stringify(data));
+        });
+
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const payload = {
+                username: document.getElementById('login-user').value,
+                password: document.getElementById('login-pass').value
+            };
+            const res = await fetch(`${API_BASE}/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+                alert('ログイン成功');
+            } else {
+                alert('ログイン失敗');
+            }
+        });
+
+        balanceBtn.addEventListener('click', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('ログインしてください');
+                return;
+            }
+            const res = await fetch(`${API_BASE}/balance`, {
+
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token: token })
+            });
+            const data = await res.json();
+            balancePre.textContent = JSON.stringify(data, null, 2);
+        });
+    </script>
+</body>
+</html>

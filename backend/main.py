@@ -4,8 +4,10 @@ from pydantic import BaseModel
 import random
 from enum import Enum
 import uuid
+
 import sqlite3
 from pathlib import Path
+
 
 app = FastAPI(title="Roulette Service")  # FastAPI アプリケーションを作成
 
@@ -16,6 +18,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 
 # メモリ上のセッション管理
 sessions = {}
@@ -35,6 +38,7 @@ class BetType(str, Enum):
     number = "number"
     color = "color"
     parity = "parity"
+
 
 class Bet(BaseModel):
     """ベット情報を保持するデータモデル"""
@@ -65,6 +69,7 @@ class SpinRequest(Bet):
     token: str
 
 
+
 @app.post("/register")
 def register(req: RegisterRequest):
     """ユーザー登録処理"""
@@ -92,6 +97,7 @@ def login(req: LoginRequest):
     row = cur.fetchone()
     if not row or row["password"] != req.password:
         raise HTTPException(status_code=401, detail="ログイン失敗")
+
     token = uuid.uuid4().hex
     sessions[token] = req.username
     return {"token": token}
@@ -112,6 +118,7 @@ def balance(token: Token):
         raise HTTPException(status_code=400, detail="ユーザーが見つかりません")
     return {"coins": row["coins"]}
 
+
 # ルーレットの色分け (ヨーロピアンスタイル 0 あり)
 RED_NUMBERS = {
     1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36
@@ -119,6 +126,7 @@ RED_NUMBERS = {
 BLACK_NUMBERS = {
     2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35
 }
+
 
 @app.post("/spin")
 def spin(bet: SpinRequest):
@@ -131,6 +139,7 @@ def spin(bet: SpinRequest):
     # ベット額の簡易チェックと残高確認
     if bet.amount <= 0:
         raise HTTPException(status_code=400, detail="Bet amount must be positive")
+
     cur = conn.execute(
         "SELECT coins FROM users WHERE username = ?",
         (username,),
@@ -182,6 +191,7 @@ def spin(bet: SpinRequest):
         (coins, username),
     )
     conn.commit()
+
 
     return {
         "result": result,
