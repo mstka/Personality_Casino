@@ -1,11 +1,14 @@
 # Personality Casino
 
+バックエンドは **FastAPI**、フロントエンドは **Pygame** で動作する Python スクリプトで構成されています。
+ - `fastapi`、`uvicorn`、`pygame`、`requests` パッケージ
+pip install fastapi uvicorn pygame requests
 
-このリポジトリはオンラインカジノサービスの簡易プロトタイプです。
-バックエンドは **FastAPI**、フロントエンドはシンプルな HTML ページで構成されています。
+別のターミナルで Pygame クライアントを起動します。
 
-ユーザー登録とログイン機能を備え、各ユーザーに 1000 コインが付与されます。
-
+```bash
+python client.py
+```
 ユーザー名・パスワード・コイン残高はバックエンドディレクトリに作成される
 SQLite データベース `users.db` に保存されます。
 
