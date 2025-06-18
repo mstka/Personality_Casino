@@ -15,19 +15,35 @@ from engine import (
 
 WIDTH, HEIGHT = 640, 480
 FONT_SIZE = 24
+BACKGROUND_COLOR = (30, 30, 30)
+TEXT_COLOR = (240, 240, 240)
+RADAR_SIZE = 250
 
 
-def draw_text(screen: Surface, lines):
-    """Render a list of text lines centered on the screen."""
-    screen.fill((0, 0, 0))
+def draw_text(screen: Surface, lines, start_y: int = 50, flip: bool = True) -> None:
+    """Render a list of text lines centered on the screen.
+
+    Parameters
+    ----------
+    screen : pygame.Surface
+        Target surface on which to draw.
+    lines : list of str
+        Text lines to display.
+    start_y : int, optional
+        Initial y-coordinate for the first line.
+    flip : bool, optional
+        Whether to update the display after drawing.
+    """
+    screen.fill(BACKGROUND_COLOR)
     font = pygame.font.SysFont(None, FONT_SIZE)
-    y = 50
+    y = start_y
     for line in lines:
-        img = font.render(line, True, (255, 255, 255))
+        img = font.render(line, True, TEXT_COLOR)
         rect = img.get_rect(center=(WIDTH // 2, y))
         screen.blit(img, rect)
         y += FONT_SIZE + 10
-    pygame.display.flip()
+    if flip:
+        pygame.display.flip()
 
 
 def get_text_input(screen: Surface, prompt: str) -> str:
@@ -35,8 +51,8 @@ def get_text_input(screen: Surface, prompt: str) -> str:
     font = pygame.font.SysFont(None, FONT_SIZE)
     user_input = ""
     while True:
-        screen.fill((0, 0, 0))
-        prompt_img = font.render(prompt + user_input, True, (255, 255, 255))
+        screen.fill(BACKGROUND_COLOR)
+        prompt_img = font.render(prompt + user_input, True, TEXT_COLOR)
         screen.blit(prompt_img, (50, HEIGHT // 2))
         pygame.display.flip()
         for event in pygame.event.get():
@@ -108,7 +124,8 @@ def show_final(screen: Surface, conn):
     btype = classify_business_type(scores)
 
     radar_img = pygame.image.load(radar_path)
-    radar_rect = radar_img.get_rect(center=(WIDTH // 2, HEIGHT // 2 + 50))
+    radar_img = pygame.transform.scale(radar_img, (RADAR_SIZE, RADAR_SIZE))
+    radar_rect = radar_img.get_rect(center=(WIDTH // 2, HEIGHT - RADAR_SIZE // 2 - 20))
 
     draw_text(
         screen,
@@ -120,6 +137,8 @@ def show_final(screen: Surface, conn):
             f"CHALLENGE: {scores['CHALLENGE']:.2f}",
             f"ADAPT: {scores['ADAPT']:.2f}",
         ],
+        start_y=20,
+        flip=False,
     )
     screen.blit(radar_img, radar_rect)
     pygame.display.flip()
