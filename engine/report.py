@@ -14,7 +14,11 @@ def generate_radar_chart(scores: Dict[str, float], filepath: str) -> None:
     values += values[:1]
     angles += angles[:1]
 
+<<<<<<< jbsuhp-codex/python製自己分析ゲームアプリケーション開発
+    plt.figure(figsize=(3, 3))
+=======
     plt.figure(figsize=(4, 4))
+>>>>>>> main
     ax = plt.subplot(111, polar=True)
     plt.xticks(angles[:-1], labels)
     ax.plot(angles, values)
